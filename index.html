@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vorety</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body {
+            background: #000;
+            color: #00ff00;
+            font-family: 'Orbitron', monospace;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.5;
+            z-index: 1;
+        }
+        
+        .glitch-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(0deg, transparent 50%, rgba(0, 255, 0, 0.02) 50%),
+                radial-gradient(circle, transparent 1px, #000 1px);
+            background-size: 100% 4px, 10px 10px;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.2;
+        }
+        
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #00ff00, transparent);
+            box-shadow: 0 0 15px #00ff00;
+            z-index: 1000;
+            animation: scan 4s linear infinite;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 100;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 25px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        
+        .main-title {
+            font-size: clamp(2.2rem, 7vw, 3.5rem);
+            font-weight: 900;
+            color: #00ff00;
+            text-shadow: 
+                0 0 10px #00ff00,
+                0 0 20px #00ff00,
+                0 0 30px #00ff00;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            animation: pulse 3s infinite alternate;
+            word-wrap: break-word;
+            padding: 0 10px;
+        }
+        
+        .subtitle {
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            color: #00aa00;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 0 10px;
+        }
+        
+        .content {
+            background: rgba(0, 30, 0, 0.15);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 0, 0.15),
+                inset 0 0 30px rgba(0, 255, 0, 0.05);
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .info-section {
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        
+        .info-section:nth-child(1) { animation-delay: 0.3s; }
+        .info-section:nth-child(2) { animation-delay: 0.6s; }
+        
+        .section-title {
+            color: #00ff00;
+            font-size: clamp(1.1rem, 3vw, 1.2rem);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            padding-bottom: 8px;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+            color: #00ff00;
+        }
+        
+        .section-text {
+            color: #aaffaa;
+            font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+            line-height: 1.7;
+            text-shadow: 0 0 3px currentColor;
+            padding-left: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .status-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .status-tag {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #00ff00;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .status-tag:nth-child(1) { animation-delay: 1.2s; }
+        .status-tag:nth-child(2) { animation-delay: 1.4s; }
+        .status-tag:nth-child(3) { animation-delay: 1.6s; }
+        
+        .links-section {
+            border-top: 1px solid rgba(0, 255, 0, 0.1);
+            padding-top: 25px;
+        }
+        
+        .link-item {
+            background: rgba(0, 20, 0, 0.25);
+            border: 1px solid rgba(0, 255, 0, 0.15);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: block;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        
+        .link-item:nth-child(1) { animation-delay: 1.8s; }
+        .link-item:nth-child(2) { animation-delay: 2.0s; }
+        .link-item:nth-child(3) { animation-delay: 2.2s; }
+        
+        .link-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 20px rgba(0, 255, 0, 0.2),
+                inset 0 0 15px rgba(0, 255, 0, 0.1);
+            border-color: rgba(0, 255, 0, 0.4);
+        }
+        
+        .link-icon {
+            font-size: 1.3rem;
+            color: #00ff00;
+            margin-right: 12px;
+            vertical-align: middle;
+        }
+        
+        .link-title {
+            color: #00ff00;
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+        
+        .link-url {
+            color: #00aa00;
+            font-size: 0.9rem;
+            display: block;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+        
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .loader-text {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            color: #00ff00;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 2px;
+            padding: 0 20px;
+        }
+        
+        .progress-container {
+            width: clamp(250px, 70vw, 350px);
+            background: rgba(0, 50, 0, 0.2);
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            margin: 0 20px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00ff00, #00cc00);
+            animation: loading 1.5s ease-out forwards;
+            box-shadow: 0 0 10px #00ff00;
+            position: relative;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shine 2s infinite;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #00aa00;
+            font-size: clamp(0.7rem, 2vw, 0.85rem);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            padding: 15px 10px 30px;
+            line-height: 1.4;
+        }
+        
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        @keyframes pulse {
+            0% { text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00; }
+            100% { text-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00, 0 0 45px #00ff00; }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                margin-bottom: 30px;
+            }
+            
+            .content {
+                padding: 20px;
+                margin-bottom: 25px;
+            }
+            
+            .info-section {
+                margin-bottom: 25px;
+            }
+            
+            .links-section {
+                padding-top: 20px;
+            }
+            
+            .link-item {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="matrix-bg" id="matrix"></canvas>
+    <div class="glitch-overlay"></div>
+    <div class="scan-line"></div>
+    
+    <div class="loader" id="loader">
+        <div class="loader-text">SYSTEM INITIALIZATION</div>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+        <div style="color: #00ff00; margin-top: 15px; font-size: clamp(0.9rem, 3.5vw, 1.1rem); padding: 0 20px;" id="percent">0%</div>
+    </div>
+    
+    <div class="container" id="content" style="display: none;">
+        <div class="header">
+            <h1 class="main-title">Vorety</h1>
+            <div class="subtitle">DIGITAL CREATOR & DEVELOPER</div>
+        </div>
+        
+        <div class="content">
+            <div class="info-section">
+                <h2 class="section-title"><i class="fas fa-globe"></i> LOCATION & STATUS</h2>
+                <p class="section-text">
+                    I live in Russia. I love working on my own projects, even if they are small. I'm waiting for everyone on my Telegram channel via the link below!
+                </p>
+            </div>
+            
+            <div class="info-section">
+                <h2 class="section-title"><i class="fas fa-bolt"></i> CURRENT STATUS</h2>
+                <p class="section-text">
+                    Website under development
+                </p>
+                <div class="status-line">
+                    <span class="status-tag">ACTIVE</span>
+                    <span class="status-tag">AVAILABLE</span>
+                    <span class="status-tag">DEVELOPING</span>
+                </div>
+            </div>
+            
+            <div class="links-section">
+                <h2 class="section-title"><i class="fas fa-link"></i> CONNECTIONS</h2>
+                
+                <a href="https://t.me/vorety" target="_blank" class="link-item">
+                    <i class="fab fa-telegram link-icon"></i>
+                    <span class="link-title">Personal Telegram</span>
+                    <span class="link-url">t.me/vorety</span>
+                </a>
+                
+                <a href="https://t.me/TheVorety" target="_blank" class="link-item">
+                    <i class="fas fa-broadcast-tower link-icon"></i>
+                    <span class="link-title">Telegram Channel</span>
+                    <span class="link-url">t.me/TheVorety</span>
+                </a>
+                
+                <a href="https://github.com/vorety" target="_blank" class="link-item">
+                    <i class="fab fa-github link-icon"></i>
+                    <span class="link-title">GitHub</span>
+                    <span class="link-url">github.com/vorety</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>CONNECTION: SECURE · STATUS: ONLINE · [VORTEX_CORE_ACTIVE]</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+        }
+        
+        resizeCanvas();
+        
+        const chars = "01";
+        const charArray = chars.split("");
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        const colors = ['#00ff00', '#00cc00', '#009900'];
+        
+        for (let x = 0; x < columns; x++) {
+            drops[x] = Math.random() * -canvas.height;
+        }
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < drops.length; i++) {
+                const char = charArray[Math.floor(Math.random() * charArray.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                ctx.fillStyle = color;
+                ctx.font = `${fontSize}px 'Orbitron'`;
+                ctx.fillText(char, i * fontSize, drops[i] * 1.05);
+                
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = color;
+                
+                drops[i]++;
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = Math.random() * -100;
+                }
+            }
+        }
+        
+        const loader = document.getElementById('loader');
+        const content = document.getElementById('content');
+        const progressBar = document.querySelector('.progress-bar');
+        const percent = document.getElementById('percent');
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 2;
+            progressBar.style.width = `${progress}%`;
+            percent.textContent = `${progress}%`;
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        content.style.display = 'block';
+                        setTimeout(() => {
+                            content.style.opacity = '1';
+                            resizeCanvas();
+                        }, 50);
+                    }, 600);
+                }, 300);
+            }
+        }, 30);
+        
+        function animate() {
+            drawMatrix();
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+        
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+        });
+        
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 100);
+        });
+        
+        const linkItems = document.querySelectorAll('.link-item');
+        linkItems.forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                item.style.transform = 'translateY(-3px)';
+                item.style.boxShadow = '0 8px 20px rgba(0, 255, 0, 0.2), inset 0 0 15px rgba(0, 255, 0, 0.1)';
+            });
+            
+            item.addEventListener('mouseleave', () => {
+                item.style.transform = '';
+                item.style.boxShadow = '';
+            });
+            
+            item.addEventListener('touchstart', () => {
+                item.style.transform = 'translateY(-3px)';
+                item.style.boxShadow = '0 8px 20px rgba(0, 255, 0, 0.2), inset 0 0 15px rgba(0, 255, 0, 0.1)';
+            });
+            
+            item.addEventListener('touchend', () => {
+                setTimeout(() => {
+                    item.style.transform = '';
+                    item.style.boxShadow = '';
+                }, 150);
+            });
+        });
+        
+        setInterval(() => {
+            const mainTitle = document.querySelector('.main-title');
+            const shadowSize = 10 + Math.random() * 10;
+            mainTitle.style.textShadow = `
+                0 0 ${shadowSize}px #00ff00,
+                0 0 ${shadowSize * 2}px #00ff00,
+                0 0 ${shadowSize * 3}px #00ff00
+            `;
+        }, 2000);
+    </script>
+</body>
+</html>
